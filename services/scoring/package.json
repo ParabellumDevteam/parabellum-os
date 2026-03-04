@@ -1,0 +1,15 @@
+{
+  "name": "@parabellum/scoring",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node -e \"console.log('scoring is a library service in Phase A')\""
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.0"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "@parabellum/rewards",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node -e \"console.log('rewards builder used via API in Phase A')\""
+  },
+  "dependencies": {
+    "@parabellum/core": "file:../../packages/core",
+    "@parabellum/db": "file:../../packages/db"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.0"
+  }
+}

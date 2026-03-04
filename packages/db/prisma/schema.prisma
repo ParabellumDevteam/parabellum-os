@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  email         String?  @unique
+  displayName   String?
+  walletAddress String?  @unique
+
+  // Privacy: Discipline Score stays private by design
+  disciplineScore Int     @default(0)
+
+  stravaAccount  StravaAccount?
+
+  activities     Activity[]
+  dailyPoints    DailyPoints[]
+  rewardClaims   RewardClaim[]
+}
+
+model StravaAccount {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  athleteId       String   @unique
+  accessToken     String
+  refreshToken    String
+  expiresAt       Int
+}
+
+model Activity {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  provider     String   // "strava"
+  providerId   String   // Strava activity id
+  startTime    DateTime
+  type         String
+  distanceM    Int?
+  movingTimeS  Int?
+  elapsedTimeS Int?
+  avgHr        Int?
+  maxHr        Int?
+  rawJson      Json
+
+  @@unique([provider, providerId])
+  @@index([userId, startTime])
+}
+
+model DailyPoints {
+  id        String   @id @default(cuid())
+  day       DateTime // normalized to 00:00:00 UTC by server
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  points    Int      @default(0)
+
+  @@unique([day, userId])
+  @@index([day])
+}
+
+model RewardEpoch {
+  id          String   @id @default(cuid())
+  day         DateTime @unique // epoch day
+  createdAt   DateTime @default(now())
+
+  merkleRoot  String
+  dailyPool   Int
+  globalCap   Int
+  yearIndex   Int
+}
+
+model RewardClaim {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  epochDay    DateTime
+  amount      Int
+  txHash      String?  @unique
+
+  @@index([userId, epochDay])
+}
+
+model WebhookEvent {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+
+  provider     String   // "strava"
+  eventKey     String   @unique // idempotency key (hash of payload or provider ids)
+  payload      Json
+
+  status       String   @default("queued") // queued|processed|failed
+  error        String?
+}
+
+model Job {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  queue        String
+  key          String   @unique // idempotency key for job
+  payload      Json
+  status       String   @default("queued") // queued|processing|done|failed
+  attempts     Int      @default(0)
+  lastError    String?
+}
