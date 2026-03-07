@@ -1,0 +1,20 @@
+{
+  "name": "@parabellum/x-publisher",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "redis": "^4.7.0",
+    "zod": "^3.23.8",
+    "playwright": "^1.52.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0",
+    "typescript": "^5.5.0",
+    "@types/node": "^22.0.0"
+  }
+}

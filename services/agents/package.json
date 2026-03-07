@@ -1,0 +1,21 @@
+{
+  "name": "@parabellum/agents",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node src/index.ts",
+    "enqueue:test": "node src/enqueue-test.js",
+    "schedule:daily": "tsx src/scheduler.ts daily",
+    "schedule:weekly": "tsx src/scheduler.ts weekly"
+  },
+  "dependencies": {
+    "redis": "^4.7.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.5.0"
+  }
+}

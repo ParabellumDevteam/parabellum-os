@@ -1,0 +1,106 @@
+import { Telegraf, Markup } from 'telegraf';
+import { createClient } from 'redis';
+import { loadEnv } from './env.js';
+
+const env = loadEnv(process.env);
+
+const Q_PUBLISH = 'q:agents:publish';
+const Q_APPROVED = 'q:agents:publish:approved';
+const Q_REJECTED = 'q:agents:publish:rejected';
+
+const bot = new Telegraf(env.TELEGRAM_BOT_TOKEN);
+const redis = createClient({ url: env.REDIS_URL });
+
+function isAdmin(ctx: any) {
+  return String(ctx.from?.id || '') === String(env.TELEGRAM_ADMIN_ID);
+}
+
+function deny(ctx: any) {
+  return ctx.reply('⛔ Not authorized.');
+}
+
+async function push(queue: string, obj: any) {
+  await redis.lPush(queue, JSON.stringify(obj));
+}
+
+bot.start((ctx) => {
+  if (!isAdmin(ctx)) return deny(ctx);
+  return ctx.reply('✅ Parabellum Approval Console online.\nCommands: /status /pending /pause /resume');
+});
+
+bot.command('status', async (ctx) => {
+  if (!isAdmin(ctx)) return deny(ctx);
+  const len = await redis.lLen(Q_PUBLISH);
+  return ctx.reply(`🧠 Status OK\nPending publish approvals: ${len}\nMode: manual`);
+});
+
+bot.command('pending', async (ctx) => {
+  if (!isAdmin(ctx)) return deny(ctx);
+  const items = await redis.lRange(Q_PUBLISH, 0, 4);
+  if (items.length === 0) return ctx.reply('✅ No pending approvals.');
+
+  await ctx.reply(`📥 Showing up to ${items.length} pending items…`);
+  for (const raw of items) {
+    let msg: any;
+    try { msg = JSON.parse(raw); } catch { msg = { raw }; }
+
+    const id = String(msg.id || msg.eventKey || msg.ts || Date.now());
+    const kind = msg.kind || 'publish_request';
+    const title = msg.title || msg.channel || 'X';
+    const body = msg.text || msg.draft || JSON.stringify(msg, null, 2);
+
+    await ctx.reply(
+      `📝 Approval #${id}\nkind=${kind}\ntarget=${title}\n\n${body}`.slice(0, 3800),
+      Markup.inlineKeyboard([
+        Markup.button.callback('✅ Approve', `approve:${id}`),
+        Markup.button.callback('❌ Reject', `reject:${id}`)
+      ])
+    );
+  }
+});
+
+bot.action(/approve:(.+)/, async (ctx) => {
+  if (!isAdmin(ctx)) return deny(ctx);
+  const id = ctx.match[1];
+
+  // We don't remove from list by ID here (keeps it simple in Phase B).
+  // Instead, we enqueue an "approved" command referencing the ID.
+  await push(Q_APPROVED, { id, approvedBy: ctx.from.id, approvedAt: Date.now() });
+
+  try {
+      await ctx.answerCbQuery('Approved ✅');
+  
+    } catch (e) {
+      // ignore "query is too old"
+    }
+await ctx.reply(`✅ Approved #${id} → queued for execution`);
+});
+
+bot.action(/reject:(.+)/, async (ctx) => {
+  if (!isAdmin(ctx)) return deny(ctx);
+  const id = ctx.match[1];
+
+  await push(Q_REJECTED, { id, rejectedBy: ctx.from.id, rejectedAt: Date.now() });
+
+  try {
+      await ctx.answerCbQuery('Rejected ❌');
+  
+    } catch (e) {
+      // ignore "query is too old"
+    }
+await ctx.reply(`❌ Rejected #${id}`);
+});
+
+async function main() {
+  redis.on('error', (e) => console.error('Redis error', e));
+  await redis.connect();
+  console.log('✅ redis connected');
+
+  await bot.launch();
+  console.log('✅ telegram approval bot running');
+}
+
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

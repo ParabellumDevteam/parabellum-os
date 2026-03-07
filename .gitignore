@@ -13,3 +13,9 @@ packages/db/prisma/migrations
 
 # Logs
 *.log
+
+.env
+.env.*
+node_modules/
+dist/
+.next/

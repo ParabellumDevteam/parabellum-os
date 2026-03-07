@@ -1,0 +1,14 @@
+{
+  "name": "@parabellum/publish-exec",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "ioredis": "^5.4.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0"
+  }
+}
