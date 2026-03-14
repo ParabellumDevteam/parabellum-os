@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -e
+
+cd /root/workspace/parabellum-os
+mkdir -p /var/log/parabellum
+
+while true
+do
+  echo "===== $(date -Iseconds) PARABELLUM OVERNIGHT LOOP =====" >> /var/log/parabellum/overnight.log
+
+  ./brain-demo >> /var/log/parabellum/overnight.log 2>&1 || true
+  ./brain-central >> /var/log/parabellum/overnight.log 2>&1 || true
+  ./brain-rewards >> /var/log/parabellum/overnight.log 2>&1 || true
+  ./brain-marketing >> /var/log/parabellum/overnight.log 2>&1 || true
+  ./brain-contract >> /var/log/parabellum/overnight.log 2>&1 || true
+  ./brain-autopilot >> /var/log/parabellum/overnight.log 2>&1 || true
+
+  sleep 300
+done

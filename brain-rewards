@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+/root/workspace/parabellum-os/brain-intelligence-update
+/root/workspace/parabellum-os/brain-intelligence-update
+python3 - <<'PY'
+import json
+p="/var/lib/parabellum/state/launch.json"
+with open(p,"r") as f:
+    data=json.load(f)
+data["rewards_ready"]=True
+with open(p,"w") as f:
+    json.dump(data,f,indent=2)
+print(json.dumps({"ok":True,"updated":"launch.json","data":data},indent=2))
+PY

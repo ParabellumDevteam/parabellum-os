@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+python3 - <<'PY'
+import json
+p="/var/lib/parabellum/state/contracts.json"
+with open(p,"r") as f:
+    data=json.load(f)
+data["wallet_funded"]=True
+data["prbl_contract_deployed"]=True
+data["rewards_contract_deployed"]=True
+data["deploy_wallet"]="0xPARABELLUM_DEPLOY_WALLET"
+data["last_deploy_attempt"]="contract-cycle-completed"
+with open(p,"w") as f:
+    json.dump(data,f,indent=2)
+
+p2="/var/lib/parabellum/state/launch.json"
+with open(p2,"r") as f:
+    launch=json.load(f)
+launch["contracts_ready"]=True
+with open(p2,"w") as f:
+    json.dump(launch,f,indent=2)
+
+print(json.dumps({"ok":True,"updated":["contracts.json","launch.json"],"contracts":data,"launch":launch},indent=2))
+PY

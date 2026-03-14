@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+KEY="brain_test_123"
+API="http://127.0.0.1:3001"
+
+MODE=$1
+NAME=$2
+INPUT=$3
+
+if [ "$MODE" = "agent" ]; then
+curl -s -X POST \
+-H "x-brain-key: $KEY" \
+-H "content-type: application/json" \
+-d "{\"agent\":\"$NAME\",\"input\":\"$INPUT\"}" \
+$API/internal/agents/run | jq
+fi
+
+if [ "$MODE" = "task" ]; then
+curl -s -X POST \
+-H "x-brain-key: $KEY" \
+-H "content-type: application/json" \
+-d "{\"task\":\"$NAME\",\"payload\":{\"source\":\"cli\"}}" \
+$API/internal/tasks/execute | jq
+fi

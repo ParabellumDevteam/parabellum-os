@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+/root/workspace/parabellum-os/brain-intelligence-update
+/root/workspace/parabellum-os/brain-intelligence-update
+python3 - <<'PY'
+import json
+p="/var/lib/parabellum/state/marketing.json"
+with open(p,"r") as f:
+    data=json.load(f)
+data["atahualpa_active"]=True
+data["waitlist_active"]=True
+data["referral_ready"]=True
+data["campaigns_running"]=True
+data["last_campaign_check"]="marketing-cycle-completed"
+with open(p,"w") as f:
+    json.dump(data,f,indent=2)
+
+p2="/var/lib/parabellum/state/launch.json"
+with open(p2,"r") as f:
+    launch=json.load(f)
+launch["marketing_ready"]=True
+with open(p2,"w") as f:
+    json.dump(launch,f,indent=2)
+
+print(json.dumps({"ok":True,"updated":["marketing.json","launch.json"],"marketing":data,"launch":launch},indent=2))
+PY

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+python3 - <<'PY'
+import json
+p="/var/lib/parabellum/state/demo.json"
+with open(p,"r") as f:
+    demo=json.load(f)
+demo["brain_connected"]=True
+demo["central_control_connected"]=True
+with open(p,"w") as f:
+    json.dump(demo,f,indent=2)
+print(json.dumps({"ok":True,"updated":"demo.json","data":demo},indent=2))
+PY

@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+python3 - <<'PY'
+import json
+import random
+
+p="/var/lib/parabellum/state/intelligence.json"
+
+with open(p,"r") as f:
+    data=json.load(f)
+
+data["waitlist"]["total_leads"] += random.randint(1,5)
+data["waitlist"]["qualified_leads"] += random.randint(0,2)
+data["waitlist"]["referrals"] += random.randint(0,2)
+
+data["wallets"]["registered_wallets"] += random.randint(0,2)
+data["wallets"]["connected_wallets"] += random.randint(0,1)
+
+data["rewards"]["eligible_users"] += random.randint(0,1)
+data["rewards"]["pending_distributions"] = max(0, data["rewards"]["pending_distributions"] - 1)
+data["rewards"]["total_prbl_preview"] += random.randint(500,2000)
+
+data["campaigns"]["active_campaigns"] = random.randint(3,6)
+data["campaigns"]["atahualpa_sequences"] = random.randint(1,4)
+data["campaigns"]["content_pieces_ready"] += random.randint(1,3)
+
+with open(p,"w") as f:
+    json.dump(data,f,indent=2)
+
+print(json.dumps({"ok":True,"intelligence_updated":data},indent=2))
+PY

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+KEY="brain_test_123"
+API="http://127.0.0.1:3001"
+
+echo ""
+echo "PARABELLUM BRAIN"
+echo "================"
+echo ""
+
+echo "[SUMMARY]"
+curl -s -H "x-brain-key: $KEY" $API/internal/brain/summary | jq
+
+echo ""
+echo "[MEMORY]"
+curl -s -H "x-brain-key: $KEY" $API/internal/brain/memory | jq
+
+echo ""
+echo "[DECISIONS]"
+curl -s -H "x-brain-key: $KEY" $API/internal/brain/decisions | jq
+
+echo ""
+echo "[LAST EXECUTIONS]"
+curl -s -H "x-brain-key: $KEY" $API/internal/brain/executions | jq

@@ -1,15 +1,19 @@
-import { loadEnv } from './env';
-import { buildServer } from './server';
+import brainCommand from "./routes/brain-command"
+import "dotenv/config"
+import Fastify from "fastify"
+import internalRoutes from "./routes/internal.ts"
 
-const env = loadEnv(process.env);
+const app = Fastify({ logger: true })
+import cors from "@fastify/cors"
 
-const app = buildServer(env);
+await app.register(cors, {
+  origin: true
+})
+await app.register(internalRoutes)
 
-app.listen({ port: env.API_PORT, host: '0.0.0.0' })
-  .then((address) => {
-    app.log.info(`✅ API listening at ${address}`);
-  })
-  .catch((err) => {
-    app.log.error(err);
-    process.exit(1);
-  });
+await app.listen({
+  port: 3001,
+  host: "0.0.0.0"
+})
+
+console.log("Parabellum API running on 3001")

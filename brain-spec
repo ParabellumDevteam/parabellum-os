@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+cat /var/lib/parabellum/brain/specs/parabellum-master-spec.md

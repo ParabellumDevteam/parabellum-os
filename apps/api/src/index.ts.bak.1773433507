@@ -1,0 +1,16 @@
+const internalRoutes = require('./routes/internal');
+import { loadEnv } from './env';
+import { buildServer } from './server';
+
+const env = loadEnv(process.env);
+
+const app = buildServer(env);
+
+app.listen({ port: env.API_PORT, host: '0.0.0.0' })
+  .then((address) => {
+    app.log.info(`✅ API listening at ${address}`);
+  })
+  .catch((err) => {
+    app.log.error(err);
+    process.exit(1);
+  });

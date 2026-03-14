@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+while true
+do
+  ./brain-autopilot
+  echo ""
+  echo "Waiting 60 seconds..."
+  sleep 60
+done
