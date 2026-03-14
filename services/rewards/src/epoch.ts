@@ -23,7 +23,7 @@ export async function buildEpoch(params: {
   perUserDailyCap: number; // 35
 }) {
   const day = dayUTC(params.day ?? new Date());
-  const y = yearIndex(params.genesisISO, new Date());
+  const y = yearIndex(params.genesisISO, day);
   const globalCap = dailyCapWithHalving(params.baseDailyGlobalCap, y);
   const dailyPool = globalCap; // Phase A: pool == cap
 

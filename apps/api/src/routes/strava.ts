@@ -11,7 +11,7 @@ const WebhookEventSchema = z.object({
   subscription_id: z.union([z.number(), z.string()]).optional(),
   event_time: z.union([z.number(), z.string()]).optional(),
   updates: z.record(z.any()).optional()
-});
+}).passthrough();
 
 export async function stravaRoutes(app: FastifyInstance, opts: { verifyToken: string; callbackUrl: string }) {
   app.get('/v1/strava/webhook', async (req, reply) => {

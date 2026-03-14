@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import crypto from 'node:crypto';
-import { computeDailyRewards, dailyCapWithHalving, yearIndex } from '@parabellum/core';
+// Phase A no-build: import from source so tsx can compile
+import { buildEpoch } from '../../../../services/rewards/src/epoch';
 
 const BuildSchema = z.object({ day: z.string().optional() });
 
@@ -16,12 +16,18 @@ function parseDay(day?: string) {
   return new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 0, 0, 0));
 }
 
-function sha256(s: string) {
-  return crypto.createHash('sha256').update(s).digest('hex');
+function authGuard(app: FastifyInstance) {
+  return async function (req: any, reply: any) {
+    try {
+      await req.jwtVerify();
+    } catch {
+      return reply.code(401).send({ ok: false, error: 'UNAUTHORIZED' });
+    }
+  };
 }
 
 export async function adminRoutes(app: FastifyInstance, opts: { genesisISO: string; baseDailyCap: number }) {
-  app.get('/v1/admin/points/today', async (_req, reply) => {
+  app.get('/v1/admin/points/today', { preHandler: [authGuard(app)] }, async (_req, reply) => {
     const day = dayUTC(new Date());
     const rows = await app.prisma.dailyPoints.findMany({
       where: { day },
@@ -31,7 +37,7 @@ export async function adminRoutes(app: FastifyInstance, opts: { genesisISO: stri
     return reply.send({ ok: true, day: day.toISOString(), rows });
   });
 
-  app.post('/v1/admin/rewards/build', async (req, reply) => {
+  app.post('/v1/admin/rewards/build', { preHandler: [authGuard(app)] }, async (req, reply) => {
     const parsed = BuildSchema.safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send({ ok: false, error: 'BAD_REQUEST' });
 
@@ -42,34 +48,13 @@ export async function adminRoutes(app: FastifyInstance, opts: { genesisISO: stri
       return reply.code(400).send({ ok: false, error: 'BAD_DAY', message: e.message });
     }
 
-    const y = yearIndex(opts.genesisISO, day);
-    const globalCap = dailyCapWithHalving(opts.baseDailyCap, y);
-    const dailyPool = globalCap;
-
-    const rows = await app.prisma.dailyPoints.findMany({
-      where: { day },
-      select: { userId: true, points: true }
-    });
-
-    const rewards = computeDailyRewards({
-      inputs: rows.map((r) => ({ userId: r.userId, points: r.points })),
-      dailyPool,
+    const result = await buildEpoch({
+      day,
+      genesisISO: opts.genesisISO,
+      baseDailyGlobalCap: opts.baseDailyCap,
       perUserDailyCap: 35
     });
 
-    const leafString = rewards
-      .sort((a, b) => a.userId.localeCompare(b.userId))
-      .map((x) => `${x.userId}:${x.reward}`)
-      .join('|');
-
-    const merkleRoot = sha256(`preview:${day.toISOString()}:${leafString}`);
-
-    const epoch = await app.prisma.rewardEpoch.upsert({
-      where: { day },
-      update: { merkleRoot, dailyPool, globalCap, yearIndex: y },
-      create: { day, merkleRoot, dailyPool, globalCap, yearIndex: y }
-    });
-
-    return reply.send({ ok: true, epoch, rewards });
+    return reply.send({ ok: true, ...result });
   });
 }

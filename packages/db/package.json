@@ -2,6 +2,7 @@
   "name": "@parabellum/db",
   "private": true,
   "type": "module",
+  "main": "src/index.ts",
   "scripts": {
     "generate": "prisma generate",
     "migrate:dev": "prisma migrate dev",
