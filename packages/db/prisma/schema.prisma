@@ -111,13 +111,15 @@ model WebhookEvent {
   error        String?
 }
 
+// Phase B: generic job queue for scheduled tasks (epoch builds, Strava token refresh, etc.)
+// Currently unused — the ingest worker uses Redis queues directly.
 model Job {
   id           String   @id @default(cuid())
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   queue        String
-  key          String   @unique // idempotency key for job
+  key          String   @unique
   payload      Json
   status       String   @default("queued") // queued|processing|done|failed
   attempts     Int      @default(0)

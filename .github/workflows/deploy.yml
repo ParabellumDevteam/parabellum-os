@@ -15,4 +15,4 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            /usr/local/bin/parabellum-deploy.sh
+            cd /opt/parabellum-os && git pull origin master && bash infra/scripts/deploy.sh

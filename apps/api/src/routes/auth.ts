@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 
 const LoginSchema = z.object({
-  walletAddress: z.string().min(10).max(80)
+  walletAddress: z.string().min(10).max(80).regex(/^0x[a-fA-F0-9]+$/, 'Must be a hex address starting with 0x')
 });
 
 export async function authRoutes(app: FastifyInstance) {
@@ -25,8 +25,8 @@ export async function authRoutes(app: FastifyInstance) {
     return reply.send({ ok: true, token, user: { id: user.id, walletAddress: user.walletAddress } });
   });
 
-  app.get('/v1/auth/me', { preHandler: [authGuard(app)] }, async (req: any, reply) => {
-    const userId = req.user.sub as string;
+  app.get('/v1/auth/me', { preHandler: [authGuard(app)] }, async (req, reply) => {
+    const userId = (req.user as { sub: string }).sub;
 
     const user = await app.prisma.user.findUnique({
       where: { id: userId },
@@ -37,8 +37,8 @@ export async function authRoutes(app: FastifyInstance) {
   });
 }
 
-function authGuard(app: FastifyInstance) {
-  return async function (req: any, reply: any) {
+function authGuard(_app: FastifyInstance) {
+  return async function (req: FastifyRequest, reply: FastifyReply) {
     try {
       await req.jwtVerify();
     } catch {

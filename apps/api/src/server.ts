@@ -14,6 +14,8 @@ import { authRoutes } from './routes/auth';
 import { stravaRoutes } from './routes/strava';
 import { rewardsRoutes } from './routes/rewards';
 import { adminRoutes } from './routes/admin';
+import { userRoutes } from './routes/user';
+import { demoRoutes } from './routes/demo';
 
 export function buildServer(env: AppEnv) {
   const app = Fastify({ logger: { level: env.NODE_ENV === 'production' ? 'info' : 'debug' } });
@@ -58,6 +60,15 @@ export function buildServer(env: AppEnv) {
       baseDailyCap: env.BASE_DAILY_GLOBAL_CAP
     });
   });
+
+  app.register(async (instance) => {
+    await userRoutes(instance, {
+      genesisISO: env.GENESIS_DATE_ISO,
+      baseDailyCap: env.BASE_DAILY_GLOBAL_CAP
+    });
+  });
+
+  app.register(demoRoutes);
 
   app.setErrorHandler((err, _req, reply) => {
     app.log.error(err);

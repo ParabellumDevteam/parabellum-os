@@ -11,11 +11,11 @@ const WebhookEventSchema = z.object({
   subscription_id: z.union([z.number(), z.string()]).optional(),
   event_time: z.union([z.number(), z.string()]).optional(),
   updates: z.record(z.any()).optional()
-});
+}).passthrough();
 
 export async function stravaRoutes(app: FastifyInstance, opts: { verifyToken: string; callbackUrl: string }) {
   app.get('/v1/strava/webhook', async (req, reply) => {
-    const q = req.query as any;
+    const q = req.query as Record<string, string>;
     const mode = q['hub.mode'];
     const token = q['hub.verify_token'];
     const challenge = q['hub.challenge'];
@@ -48,12 +48,11 @@ export async function stravaRoutes(app: FastifyInstance, opts: { verifyToken: st
     let inserted = false;
     try {
       await app.prisma.webhookEvent.create({
-        data: { provider: 'strava', eventKey, payload: payload as any, status: 'queued' }
+        data: { provider: 'strava', eventKey, payload: payload as Record<string, unknown>, status: 'queued' }
       });
       inserted = true;
-    } catch (e: any) {
-      // Prisma unique constraint
-      if (String(e?.code) === 'P2002') {
+    } catch (e: unknown) {
+      if ((e as { code?: string })?.code === 'P2002') {
         const size = await queueSize(app, QUEUE_STRAVA_EVENTS);
         return reply.send({ ok: true, deduped: true, queued: false, eventKey, queue: size });
       }
