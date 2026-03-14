@@ -1,4 +1,4 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 // Phase A no-build: import from source so tsx can compile
 import { buildEpoch } from '../../../../services/rewards/src/epoch';
@@ -16,8 +16,8 @@ function parseDay(day?: string) {
   return new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 0, 0, 0));
 }
 
-function authGuard(app: FastifyInstance) {
-  return async function (req: any, reply: any) {
+function authGuard(_app: FastifyInstance) {
+  return async function (req: FastifyRequest, reply: FastifyReply) {
     try {
       await req.jwtVerify();
     } catch {
@@ -44,8 +44,8 @@ export async function adminRoutes(app: FastifyInstance, opts: { genesisISO: stri
     let day: Date;
     try {
       day = dayUTC(parseDay(parsed.data.day));
-    } catch (e: any) {
-      return reply.code(400).send({ ok: false, error: 'BAD_DAY', message: e.message });
+    } catch (e: unknown) {
+      return reply.code(400).send({ ok: false, error: 'BAD_DAY', message: (e as Error).message });
     }
 
     const result = await buildEpoch({
