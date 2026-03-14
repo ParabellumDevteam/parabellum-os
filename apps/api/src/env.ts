@@ -5,7 +5,12 @@ const EnvSchema = z.object({
   API_PORT: z.coerce.number().default(3001),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
   DATABASE_URL: z.string().min(1),
-  REDIS_URL: z.string().min(1)
+  REDIS_URL: z.string().min(1),
+  JWT_SECRET: z.string().min(1),
+  STRAVA_WEBHOOK_VERIFY_TOKEN: z.string().min(1),
+  STRAVA_CALLBACK_URL: z.string().min(1),
+  GENESIS_DATE_ISO: z.string().min(1),
+  BASE_DAILY_GLOBAL_CAP: z.coerce.number().int().positive()
 });
 
 export type AppEnv = z.infer<typeof EnvSchema>;

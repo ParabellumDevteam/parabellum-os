@@ -42,7 +42,7 @@ export async function adminRoutes(app: FastifyInstance, opts: { genesisISO: stri
       return reply.code(400).send({ ok: false, error: 'BAD_DAY', message: e.message });
     }
 
-    const y = yearIndex(opts.genesisISO, new Date());
+    const y = yearIndex(opts.genesisISO, day);
     const globalCap = dailyCapWithHalving(opts.baseDailyCap, y);
     const dailyPool = globalCap;
 
@@ -67,7 +67,7 @@ export async function adminRoutes(app: FastifyInstance, opts: { genesisISO: stri
     const epoch = await app.prisma.rewardEpoch.upsert({
       where: { day },
       update: { merkleRoot, dailyPool, globalCap, yearIndex: y },
-      create: { dailyPool: 1000, day, merkleRoot, dailyPool, globalCap, yearIndex: y }
+      create: { day, merkleRoot, dailyPool, globalCap, yearIndex: y }
     });
 
     return reply.send({ ok: true, epoch, rewards });
