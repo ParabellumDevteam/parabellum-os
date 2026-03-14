@@ -76,7 +76,9 @@ export default function RewardsPage() {
 
       <nav className="nav-bar">
         <a href="/" className="nav-link">Dashboard</a>
+        <a href="/activities" className="nav-link">Activities</a>
         <a href="/rewards" className="nav-link active">Rewards</a>
+        <a href="/simulate" className="nav-link">Simulate</a>
       </nav>
     </>
   );
